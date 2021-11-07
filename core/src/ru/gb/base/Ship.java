@@ -69,6 +69,10 @@ public class Ship extends Sprite {
         bulletSound.play(0.007f);
     }
 
+    public void destroyWithoutBoom() {
+        super.destroy();
+    }
+
     @Override
     public void destroy() {
         super.destroy();
@@ -81,7 +85,7 @@ public class Ship extends Sprite {
         reloadTimer += delta;
         if (reloadTimer >= reloadInterval) {
             reloadTimer = 0f;
-            bulletPos.set(pos);
+//            bulletPos.set(pos);
             shoot();
         }
         damageAnimateTimer += delta;

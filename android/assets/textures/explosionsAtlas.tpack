@@ -1,0 +1,12 @@
+
+explosionsAtlas.png
+format: RGBA8888
+filter: MipMapLinearNearest,Linear
+repeat: none
+explosion
+  rotate: false
+  xy: 0, 0
+  size: 3354, 3354
+  orig: 3354, 3354
+  offset: 0, 0
+  index: 0

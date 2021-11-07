@@ -12,6 +12,8 @@ import ru.gb.pool.ExplosionPool;
 
 public class MainShip extends Ship {
 
+    private static final int DEFAULT_HP = 1;
+
     private static final float RELOAD_INTERVAL = 0.2f;
 
     private static final float HEIGHT = 0.15f;
@@ -34,7 +36,7 @@ public class MainShip extends Ship {
         this.bulletHeight = 0.01f;
         this.bulletDamage = 1;
         this.bulletPos = new Vector2();
-        this.hp = 100;
+        this.hp = DEFAULT_HP;
         this.bulletSound = bulletSound;
         this.v = new Vector2();
         this.v0 = new Vector2(0.5f, 0);
@@ -42,8 +44,8 @@ public class MainShip extends Ship {
 
     @Override
     public void update(float delta) {
-        super.update(delta);
         bulletPos.set(this.pos.x, getTop());
+        super.update(delta);
         if (getLeft() > worldBounds.getRight()) {
             setRight(worldBounds.getLeft());
         }
@@ -159,5 +161,9 @@ public class MainShip extends Ship {
         v.setZero();
     }
 
-
+    @Override
+    public void flushDestroyed() {
+        super.flushDestroyed();
+        this.hp = DEFAULT_HP;
+    }
 }

@@ -8,13 +8,13 @@ import ru.gb.base.Sprite;
 
 public class Explosion extends Sprite {
 
-    private static final float ANIMATE_INTERVAL = 0.017f;
+    private static final float ANIMATE_INTERVAL = 0.0085f;
     private float animateTimer;
 
     private final Sound explosionSound;
 
     public Explosion(TextureAtlas atlas, Sound explosionSound) {
-        super(atlas.findRegion("explosion"), 9, 9, 74);
+        super(atlas.findRegion("explosion"), 13, 13, 160);
         this.explosionSound = explosionSound;
     }
 
