@@ -7,10 +7,13 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.math.Vector2;
 
+import java.util.List;
+
 import ru.gb.base.BaseScreen;
 import ru.gb.math.Rect;
 import ru.gb.pool.BulletPool;
 import ru.gb.pool.EnemyPool;
+import ru.gb.pool.ExplosionPool;
 import ru.gb.sprites.Background;
 import ru.gb.sprites.Bullet;
 import ru.gb.sprites.EnemyShip;
@@ -24,6 +27,7 @@ public class GameScreen extends BaseScreen {
 
     private Sound laserSound;
     private Sound bulletSound;
+    private Sound explosionSound;
     private Music backgroundMusic;
 
     private TextureAtlas atlas;
@@ -32,6 +36,7 @@ public class GameScreen extends BaseScreen {
 
     private Star[] stars;
     private BulletPool bulletPool;
+    private ExplosionPool explosionPool;
     private EnemyPool enemyPool;
 
     private MainShip mainShip;
@@ -48,6 +53,7 @@ public class GameScreen extends BaseScreen {
 
         laserSound = Gdx.audio.newSound(Gdx.files.internal("android/assets/sounds/laser.wav"));
         bulletSound = Gdx.audio.newSound(Gdx.files.internal("android/assets/sounds/bullet.wav"));
+        explosionSound = Gdx.audio.newSound(Gdx.files.internal("android/assets/sounds/explosion.wav"));
 
         bg = new Texture("textures/bg.png");
         background = new Background(bg);
@@ -60,9 +66,10 @@ public class GameScreen extends BaseScreen {
         }
 
         bulletPool = new BulletPool();
-        enemyPool = new EnemyPool(bulletPool, worldBounds, bulletSound);
+        explosionPool = new ExplosionPool(atlas, explosionSound);
+        enemyPool = new EnemyPool(bulletPool, explosionPool, worldBounds, bulletSound);
 
-        mainShip = new MainShip(atlas, bulletPool, laserSound);
+        mainShip = new MainShip(atlas, bulletPool, explosionPool, laserSound);
 
         enemyEmitter = new EnemyEmitter(enemyPool, atlas, worldBounds);
     }
@@ -71,6 +78,7 @@ public class GameScreen extends BaseScreen {
     public void render(float delta) {
         super.render(delta);
         update(delta);
+        checkCollisions();
         freeAllDestroyed();
         draw();
     }
@@ -93,8 +101,10 @@ public class GameScreen extends BaseScreen {
         atlas.dispose();
         bulletPool.dispose();
         laserSound.dispose();
+        explosionSound.dispose();
         backgroundMusic.dispose();
         enemyPool.dispose();
+        explosionPool.dispose();
     }
 
     @Override
@@ -130,20 +140,43 @@ public class GameScreen extends BaseScreen {
         for (Star star : stars) {
             star.update(delta);
         }
-        bulletPool.updateActiveObjects(delta);
-        enemyPool.updateActiveObjects(delta);
-        mainShip.update(delta);
-        enemyEmitter.generate(delta);
-        checkIfHit();
-
+        if (!mainShip.isDestroyed()) {
+            bulletPool.updateActiveObjects(delta);
+            enemyPool.updateActiveObjects(delta);
+            mainShip.update(delta);
+            enemyEmitter.generate(delta);
+        }
+        explosionPool.updateActiveObjects(delta);
     }
 
-    private void checkIfHit() {
-        for (EnemyShip es: enemyPool.getActiveObjects()) {
-            for (Bullet b: bulletPool.getActiveObjects()) {
-                if (!es.isOutside(b) && b.getOwner().equals(mainShip)) {
-                    b.destroy();
-                    es.setHp(es.getHp() - 1);
+    private void checkCollisions() {
+        if (mainShip.isDestroyed()) {
+            return;
+        }
+        List<EnemyShip> enemyShipList = enemyPool.getActiveObjects();
+        for (EnemyShip enemyShip : enemyShipList) {
+            float minDist = mainShip.getWidth();
+            if (!enemyShip.isDestroyed() && mainShip.pos.dst(enemyShip.pos) < minDist) {
+                enemyShip.destroy();
+                mainShip.damage(enemyShip.getDamage() * 2);
+            }
+        }
+        List<Bullet> bulletList = bulletPool.getActiveObjects();
+        for (Bullet bullet : bulletList) {
+            if (bullet.isDestroyed()) {
+                continue;
+            }
+            if (bullet.getOwner() != mainShip) {
+                if (mainShip.isBulletCollision(bullet)) {
+                    mainShip.damage(bullet.getDamage());
+                    bullet.destroy();
+                }
+                continue;
+            }
+            for (EnemyShip enemyShip : enemyShipList) {
+                if (enemyShip.isBulletCollision(bullet)) {
+                    enemyShip.damage(bullet.getDamage());
+                    bullet.destroy();
                 }
             }
         }
@@ -151,6 +184,7 @@ public class GameScreen extends BaseScreen {
 
     private void freeAllDestroyed() {
         bulletPool.freeAllDestroyed();
+        explosionPool.freeAllDestroyed();
         enemyPool.freeAllDestroyed();
     }
 
@@ -161,11 +195,13 @@ public class GameScreen extends BaseScreen {
         for (Star star : stars) {
             star.draw(batch);
         }
+        if (!mainShip.isDestroyed()) {
+            bulletPool.drawActiveObjects(batch);
+            enemyPool.drawActiveObjects(batch);
+            mainShip.draw(batch);
+        }
 
-        bulletPool.drawActiveObjects(batch);
-        enemyPool.drawActiveObjects(batch);
-        mainShip.draw(batch);
-
+        explosionPool.drawActiveObjects(batch);
         batch.end();
     }
 }

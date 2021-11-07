@@ -6,10 +6,15 @@ import com.badlogic.gdx.math.Vector2;
 
 import ru.gb.math.Rect;
 import ru.gb.pool.BulletPool;
+import ru.gb.pool.ExplosionPool;
 import ru.gb.sprites.Bullet;
+import ru.gb.sprites.Explosion;
 
-public class Ship extends Sprite{
+public class Ship extends Sprite {
 
+    private static final float DAMAGE_ANIMATE_INTERVAL = 0.1f;
+
+    protected ExplosionPool explosionPool;
     protected BulletPool bulletPool;
     protected Sound bulletSound;
     protected TextureRegion bulletRegion;
@@ -24,7 +29,10 @@ public class Ship extends Sprite{
 
     protected float reloadTimer;
     protected float reloadInterval;
+
     protected Rect worldBounds;
+
+    private float damageAnimateTimer = DAMAGE_ANIMATE_INTERVAL;
 
     public Ship() {
 
@@ -42,6 +50,19 @@ public class Ship extends Sprite{
         this.hp = hp;
     }
 
+    public int getDamage() {
+        return bulletDamage;
+    }
+
+    public void damage(int hp) {
+        this.hp -= hp;
+        if (this.hp <= 0) {
+            destroy();
+        }
+        damageAnimateTimer = 0f;
+        frame = 1;
+    }
+
     private void shoot() {
         Bullet bullet = bulletPool.obtain();
         bullet.set(this, bulletRegion, bulletPos, bulletV, worldBounds, bulletHeight, bulletDamage);
@@ -49,13 +70,28 @@ public class Ship extends Sprite{
     }
 
     @Override
+    public void destroy() {
+        super.destroy();
+        boom();
+    }
+
+    @Override
     public void update(float delta) {
         pos.mulAdd(v, delta);
         reloadTimer += delta;
-        if(reloadTimer >= reloadInterval){
+        if (reloadTimer >= reloadInterval) {
             reloadTimer = 0f;
+            bulletPos.set(pos);
             shoot();
         }
-        bulletPos.set(pos);
+        damageAnimateTimer += delta;
+        if (damageAnimateTimer >= DAMAGE_ANIMATE_INTERVAL) {
+            frame = 0;
+        }
+    }
+
+    private void boom() {
+        Explosion explosion = explosionPool.obtain();
+        explosion.set(this.pos, getHeight());
     }
 }
