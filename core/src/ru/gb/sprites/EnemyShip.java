@@ -24,6 +24,7 @@ public class EnemyShip extends Ship {
 
     @Override
     public void update(float delta) {
+        bulletPos.set(pos.x, getBottom());
         super.update(delta);
         if (getTop() < worldBounds.getTop()) {
             v.set(v0);
@@ -69,5 +70,4 @@ public class EnemyShip extends Ship {
                 || bullet.getTop() < pos.y
         );
     }
-
 }

@@ -17,7 +17,9 @@ import ru.gb.pool.ExplosionPool;
 import ru.gb.sprites.Background;
 import ru.gb.sprites.Bullet;
 import ru.gb.sprites.EnemyShip;
+import ru.gb.sprites.GameOver;
 import ru.gb.sprites.MainShip;
+import ru.gb.sprites.NewGameButton;
 import ru.gb.sprites.Star;
 import ru.gb.util.EnemyEmitter;
 
@@ -31,8 +33,11 @@ public class GameScreen extends BaseScreen {
     private Music backgroundMusic;
 
     private TextureAtlas atlas;
+    //    private TextureAtlas newExplosionAtlas;
     private Texture bg;
     private Background background;
+    private GameOver gameOver;
+    private NewGameButton newGameButton;
 
     private Star[] stars;
     private BulletPool bulletPool;
@@ -42,6 +47,8 @@ public class GameScreen extends BaseScreen {
     private MainShip mainShip;
 
     private EnemyEmitter enemyEmitter;
+
+    private int frags;
 
     @Override
     public void show() {
@@ -59,6 +66,7 @@ public class GameScreen extends BaseScreen {
         background = new Background(bg);
 
         atlas = new TextureAtlas("textures/mainAtlas.tpack");
+//        newExplosionAtlas = new TextureAtlas("textures/explosionsAtlas.tpack");
 
         stars = new Star[STAR_COUNT];
         for (int i = 0; i < stars.length; i++) {
@@ -72,6 +80,22 @@ public class GameScreen extends BaseScreen {
         mainShip = new MainShip(atlas, bulletPool, explosionPool, laserSound);
 
         enemyEmitter = new EnemyEmitter(enemyPool, atlas, worldBounds);
+
+        frags = 0;
+
+        gameOver = new GameOver(atlas);
+        newGameButton = new NewGameButton(atlas, this);
+    }
+
+    public void startNewGame() {
+
+        frags = 0;
+
+        bulletPool.freeAllActiveObjects();
+        explosionPool.freeAllActiveObjects();
+        enemyPool.freeAllActiveObjects();
+
+        mainShip.startNewGame();
     }
 
     @Override
@@ -92,6 +116,9 @@ public class GameScreen extends BaseScreen {
         for (Star star : stars) {
             star.resize(worldBounds);
         }
+
+        gameOver.resize(worldBounds);
+        newGameButton.resize(worldBounds);
     }
 
     @Override
@@ -126,13 +153,21 @@ public class GameScreen extends BaseScreen {
 
     @Override
     public boolean touchDown(Vector2 touch, int pointer, int button) {
-        mainShip.touchDown(touch, pointer, button);
+        if (!mainShip.isDestroyed()) {
+            mainShip.touchDown(touch, pointer, button);
+        } else {
+            newGameButton.touchDown(touch, pointer, button);
+        }
         return super.touchDown(touch, pointer, button);
     }
 
     @Override
     public boolean touchUp(Vector2 touch, int pointer, int button) {
-        mainShip.touchUp(touch, pointer, button);
+        if (!mainShip.isDestroyed()) {
+            mainShip.touchUp(touch, pointer, button);
+        } else {
+            newGameButton.touchUp(touch, pointer, button);
+        }
         return super.touchUp(touch, pointer, button);
     }
 
@@ -176,6 +211,9 @@ public class GameScreen extends BaseScreen {
             for (EnemyShip enemyShip : enemyShipList) {
                 if (enemyShip.isBulletCollision(bullet)) {
                     enemyShip.damage(bullet.getDamage());
+                    if (enemyShip.isDestroyed()) {
+                        frags++;
+                    }
                     bullet.destroy();
                 }
             }
@@ -199,6 +237,9 @@ public class GameScreen extends BaseScreen {
             bulletPool.drawActiveObjects(batch);
             enemyPool.drawActiveObjects(batch);
             mainShip.draw(batch);
+        } else {
+            gameOver.draw(batch);
+            newGameButton.draw(batch);
         }
 
         explosionPool.drawActiveObjects(batch);
