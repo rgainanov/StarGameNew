@@ -12,7 +12,7 @@ import ru.gb.pool.ExplosionPool;
 
 public class MainShip extends Ship {
 
-    private static final int DEFAULT_HP = 1;
+    private static final int DEFAULT_HP = 100;
 
     private static final float RELOAD_INTERVAL = 0.2f;
 

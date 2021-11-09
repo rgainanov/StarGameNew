@@ -1,5 +1,6 @@
 package ru.gb.base;
 
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector2;
@@ -16,13 +17,13 @@ public class Sprite extends Rect {
     private boolean destroyed;
 
 
-
     public Sprite(TextureRegion region) {
         if (region == null) {
             throw new IllegalArgumentException("region must not be null");
         }
         regions = new TextureRegion[1];
         regions[0] = region;
+        region.getTexture().setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
     }
 
     public Sprite() {
@@ -30,6 +31,9 @@ public class Sprite extends Rect {
 
     public Sprite(TextureRegion region, int rows, int cols, int frames) {
         this.regions = Regions.split(region, rows, cols, frames);
+        for (TextureRegion item : regions) {
+            item.getTexture().setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
+        }
     }
 
     public void setHeightProportions(float height) {
