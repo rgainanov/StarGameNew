@@ -161,9 +161,14 @@ public class MainShip extends Ship {
         v.setZero();
     }
 
-    @Override
-    public void flushDestroyed() {
-        super.flushDestroyed();
+    public void startNewGame() {
         this.hp = DEFAULT_HP;
+        leftPointer = INVALID_POINTER;
+        rightPointer = INVALID_POINTER;
+        pressedLeft = false;
+        pressedRight = false;
+        stop();
+        pos.x = worldBounds.pos.x;
+        flushDestroyed();
     }
 }
