@@ -30,7 +30,7 @@ public class GameScreen extends BaseScreen {
     private static final int STAR_COUNT = 64;
     private static final float FONT_SIZE = 0.015f;
     private static final float MARGIN = 0.01f;
-    private static final String FRAGS = "Ships Destroyed: ";
+    private static final String FRAGS = "Frags: ";
     private static final String HP = "HP: ";
     private static final String LEVEL = "Level: ";
 
