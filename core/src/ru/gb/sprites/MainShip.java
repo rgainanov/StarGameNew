@@ -13,6 +13,7 @@ import ru.gb.pool.ExplosionPool;
 public class MainShip extends Ship {
 
     private static final int DEFAULT_HP = 100;
+    private static final float POWER_UP_INTERVAL = 10f;
 
     private static final float RELOAD_INTERVAL = 0.2f;
 
@@ -77,7 +78,7 @@ public class MainShip extends Ship {
 
         if (laserMode) {
             laserTimer += delta;
-            if (laserTimer > 10f) {
+            if (laserTimer > POWER_UP_INTERVAL) {
                 setReloadInterval(RELOAD_INTERVAL);
                 laserMode = false;
                 laserTimer = 0;
@@ -87,7 +88,7 @@ public class MainShip extends Ship {
         if (shieldMode) {
             shieldAnimation(delta);
             shieldTimer += delta;
-            if (shieldTimer > 10f) {
+            if (shieldTimer > POWER_UP_INTERVAL) {
                 setShieldMode(false);
                 shieldTimer = 0;
                 shieldAnimationTimer = 0;
