@@ -38,6 +38,14 @@ public class Ship extends Sprite {
 
     }
 
+    public float getReloadInterval() {
+        return reloadInterval;
+    }
+
+    public void setReloadInterval(float reloadInterval) {
+        this.reloadInterval = reloadInterval;
+    }
+
     public Ship(TextureRegion region, int rows, int cols, int frames) {
         super(region, rows, cols, frames);
     }

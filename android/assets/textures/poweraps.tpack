@@ -1,0 +1,53 @@
+powerups.png
+format: RGBA8888
+filter: MipMapLinearNearest,Linear
+repeat: none
+bolt_gold
+  rotate: false
+  xy: 1, 1
+  size: 19, 30
+  orig: 19, 30
+  offset: 0, 0
+  index: 0
+pill_blue
+  rotate: false
+  xy: 22, 1
+  size: 22, 21
+  orig: 22, 21
+  offset: 0, 0
+  index: -1
+pill_green
+  rotate: false
+  xy: 46, 1
+  size: 22, 21
+  orig: 22, 21
+  offset: 0, 0
+  index: -1
+pill_red
+  rotate: false
+  xy: 22, 24
+  size: 22, 21
+  orig: 22, 21
+  offset: 0, 0
+  index: -1
+shield_silver
+  rotate: false
+  xy: 70, 1
+  size: 30, 30
+  orig: 30, 30
+  offset: 0, 0
+  index: -1
+star_gold
+  rotate: false
+  xy: 46, 33
+  size: 31, 30
+  orig: 31, 30
+  offset: 0, 0
+  index: -1
+things_bronze
+  rotate: false
+  xy: 1, 65
+  size: 32, 32
+  orig: 32, 32
+  offset: 0, 0
+  index: -1

@@ -16,14 +16,17 @@ import ru.gb.math.Rect;
 import ru.gb.pool.BulletPool;
 import ru.gb.pool.EnemyPool;
 import ru.gb.pool.ExplosionPool;
+import ru.gb.pool.PowerUpPool;
 import ru.gb.sprites.Background;
 import ru.gb.sprites.Bullet;
 import ru.gb.sprites.EnemyShip;
 import ru.gb.sprites.GameOver;
 import ru.gb.sprites.MainShip;
 import ru.gb.sprites.NewGameButton;
+import ru.gb.sprites.PowerUp;
 import ru.gb.sprites.Star;
 import ru.gb.util.EnemyEmitter;
+import ru.gb.util.PowerUpEmitter;
 
 public class GameScreen extends BaseScreen {
 
@@ -62,6 +65,10 @@ public class GameScreen extends BaseScreen {
     private StringBuilder sbLevel;
 
     private Font font;
+
+    private PowerUpPool powerUpPool;
+    private PowerUpEmitter powerUpEmitter;
+    private TextureAtlas powerUpAtlas;
 
     @Override
     public void show() {
@@ -103,6 +110,10 @@ public class GameScreen extends BaseScreen {
 
         gameOver = new GameOver(atlas);
         newGameButton = new NewGameButton(atlas, this);
+
+        powerUpAtlas = new TextureAtlas("textures/poweraps.tpack");
+        powerUpPool = new PowerUpPool(worldBounds);
+        powerUpEmitter = new PowerUpEmitter(powerUpPool, powerUpAtlas, worldBounds);
     }
 
     public void startNewGame() {
@@ -149,6 +160,9 @@ public class GameScreen extends BaseScreen {
         explosionSound.dispose();
         backgroundMusic.dispose();
         enemyPool.dispose();
+
+        powerUpPool.dispose();
+
         explosionPool.dispose();
         font.dispose();
     }
@@ -194,11 +208,17 @@ public class GameScreen extends BaseScreen {
         for (Star star : stars) {
             star.update(delta);
         }
+
         if (!mainShip.isDestroyed()) {
             bulletPool.updateActiveObjects(delta);
             enemyPool.updateActiveObjects(delta);
+
+            powerUpPool.updateActiveObjects(delta);
+
             mainShip.update(delta);
             enemyEmitter.generate(delta, frags);
+
+            powerUpEmitter.generate(delta);
         }
         explosionPool.updateActiveObjects(delta);
     }
@@ -212,20 +232,32 @@ public class GameScreen extends BaseScreen {
             float minDist = mainShip.getWidth();
             if (!enemyShip.isDestroyed() && mainShip.pos.dst(enemyShip.pos) < minDist) {
                 enemyShip.destroy();
-                mainShip.damage(enemyShip.getDamage() * 2);
+                if (!mainShip.isShieldMode()) {
+                    mainShip.damage(enemyShip.getDamage() * 2);
+                }
             }
         }
         List<Bullet> bulletList = bulletPool.getActiveObjects();
+        List<PowerUp> powerUpList = powerUpPool.getActiveObjects();
         for (Bullet bullet : bulletList) {
             if (bullet.isDestroyed()) {
                 continue;
             }
             if (bullet.getOwner() != mainShip) {
                 if (mainShip.isBulletCollision(bullet)) {
-                    mainShip.damage(bullet.getDamage());
+                    if (!mainShip.isShieldMode()) {
+                        mainShip.damage(bullet.getDamage());
+                    }
                     bullet.destroy();
                 }
                 continue;
+            } else {
+                for (PowerUp powerUp : powerUpList) {
+                    if (!powerUp.isOutside(bullet)) {
+                        bullet.destroy();
+                        checkPowerUp(powerUp);
+                    }
+                }
             }
             for (EnemyShip enemyShip : enemyShipList) {
                 if (enemyShip.isBulletCollision(bullet)) {
@@ -237,12 +269,54 @@ public class GameScreen extends BaseScreen {
                 }
             }
         }
+        for (PowerUp powerUp : powerUpList) {
+            if (mainShip.isPowerUpCollision(powerUp)) {
+                checkPowerUp(powerUp);
+            }
+        }
+    }
+
+    private void checkPowerUp(PowerUp powerUp) {
+        powerUp.destroy();
+        switch (powerUp.getName()) {
+            case "pillBlue":
+                mainShip.setHp(mainShip.getHp() + 10);
+                break;
+            case "pillGreen":
+                mainShip.setHp(mainShip.getHp() + 15);
+                break;
+            case "pillRed":
+                mainShip.damage(20);
+                break;
+            case "starGold":
+                List<EnemyShip> enemyShipList = enemyPool.getActiveObjects();
+                for (EnemyShip e : enemyShipList) {
+                    e.destroy();
+                    frags++;
+                }
+                List<Bullet> bulletList = bulletPool.getActiveObjects();
+                for (Bullet b : bulletList) {
+                    b.destroy();
+                }
+                break;
+            case "boltGold":
+                mainShip.setLaserMode(true);
+                mainShip.setReloadInterval(0.01f);
+                break;
+            case "shieldSilver":
+                mainShip.setShieldMode(true);
+                break;
+            default:
+                break;
+        }
     }
 
     private void freeAllDestroyed() {
         bulletPool.freeAllDestroyed();
         explosionPool.freeAllDestroyed();
         enemyPool.freeAllDestroyed();
+
+        powerUpPool.freeAllDestroyed();
     }
 
     private void draw() {
@@ -255,6 +329,9 @@ public class GameScreen extends BaseScreen {
         if (!mainShip.isDestroyed()) {
             bulletPool.drawActiveObjects(batch);
             enemyPool.drawActiveObjects(batch);
+
+            powerUpPool.drawActiveObjects(batch);
+
             mainShip.draw(batch);
         } else {
             gameOver.draw(batch);
